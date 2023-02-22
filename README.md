@@ -15,13 +15,13 @@ So this extension offers options to eliminate the negative effects.
 ### Enabled
 When checked, Composable LoRA is enabled.
 
-### Use Lora to uc text model encoder
+### Use Lora in uc text model encoder
 Enable LoRA for uncondition (negative prompt) text model encoder.
 With this disabled, you can expect better output.
 
 Built-in LoRA is always enabled.
 
-### Use Lora to uc diffusion model
+### Use Lora in uc diffusion model
 Enable LoRA for uncondition (negative prompt) diffusion model (denoiser).
 With this disabled, you can expect better output.
 
