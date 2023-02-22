@@ -1,4 +1,4 @@
-# stable-diffusion-webui-composable-lora
+# Composable LoRA
 This extension replaces the built-in LoRA forward procedure.
 
 ## Features
