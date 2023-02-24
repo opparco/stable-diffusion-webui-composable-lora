@@ -6,8 +6,9 @@ import gradio as gr
 
 import composable_lora
 import modules.scripts as scripts
-from modules import script_callbacks, extra_networks, shared
+from modules import script_callbacks, prompt_parser
 from modules.processing import StableDiffusionProcessing
+
 
 def unload():
     torch.nn.Linear.forward = torch.nn.Linear_forward_before_lora
@@ -24,6 +25,11 @@ torch.nn.Linear.forward = composable_lora.lora_Linear_forward
 torch.nn.Conv2d.forward = composable_lora.lora_Conv2d_forward
 
 script_callbacks.on_script_unloaded(unload)
+
+
+if not hasattr(prompt_parser, 'get_learned_conditioning_prompt_schedules_before_lora'):
+    prompt_parser.get_learned_conditioning_prompt_schedules_before_lora = prompt_parser.get_learned_conditioning_prompt_schedules
+prompt_parser.get_learned_conditioning_prompt_schedules = composable_lora.lora_get_learned_conditioning_prompt_schedules
 
 
 class ComposableLoraScript(scripts.Script):
@@ -53,4 +59,4 @@ class ComposableLoraScript(scripts.Script):
         composable_lora.load_prompt_loras(prompt)
 
     def process_batch(self, p: StableDiffusionProcessing, *args, **kwargs):
-        composable_lora.reset_text_model_encoder_counter()
+        composable_lora.reset_counters()
