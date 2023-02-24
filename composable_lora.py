@@ -90,7 +90,9 @@ def lora_forward(compvis_module, input, res):
 
                 if get_learned_conditioning_prompt_schedules_counter != 1 and lora_layer_name.endswith("_11_mlp_fc2"):  # last lora_layer_name of text_model_encoder
                     text_model_encoder_counter += 1
-                    # c1 c2 ..
+                    # c1 c2 c1 c2 ..
+                    if text_model_encoder_counter == len(prompt_loras):
+                        text_model_encoder_counter = 0
 
             elif res.shape[0] == num_batches * num_prompts + num_batches:  # "diffusion_model_"
                 # tensor.shape[1] == uncond.shape[1]
