@@ -57,7 +57,7 @@ def lora_forward(compvis_module, input, res):
 
     num_prompts = len(prompt_loras)
 
-    # debug(f"lora.forward lora_layer_name={lora_layer_name} in.shape={input.shape} res.shape={res.shape} num_batches={num_batches} num_prompts={num_prompts}", lora_layer_name=lora_layer_name)
+    # print(f"lora.forward lora_layer_name={lora_layer_name} in.shape={input.shape} res.shape={res.shape} num_batches={num_batches} num_prompts={num_prompts}")
 
     for lora in lora.loaded_loras:
         module = lora.modules.get(lora_layer_name, None)
@@ -71,7 +71,7 @@ def lora_forward(compvis_module, input, res):
 
         alpha = module.alpha / module.up.weight.shape[1] if module.alpha else 1.0
 
-        # debug(f"lora.name={lora.name} lora.mul={lora.multiplier} alpha={alpha} pat.shape={patch.shape}")
+        # print(f"lora.name={lora.name} lora.mul={lora.multiplier} alpha={alpha} pat.shape={patch.shape}")
 
         if enabled:
             if lora_layer_name.startswith("transformer_"):  # "transformer_text_model_encoder_"
