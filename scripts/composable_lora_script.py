@@ -13,6 +13,7 @@ from modules.processing import StableDiffusionProcessing
 def unload():
     torch.nn.Linear.forward = torch.nn.Linear_forward_before_lora
     torch.nn.Conv2d.forward = torch.nn.Conv2d_forward_before_lora
+    prompt_parser.get_learned_conditioning_prompt_schedules = prompt_parser.get_learned_conditioning_prompt_schedules_before_lora
 
 
 if not hasattr(torch.nn, 'Linear_forward_before_lora'):
@@ -21,15 +22,14 @@ if not hasattr(torch.nn, 'Linear_forward_before_lora'):
 if not hasattr(torch.nn, 'Conv2d_forward_before_lora'):
     torch.nn.Conv2d_forward_before_lora = torch.nn.Conv2d.forward
 
-torch.nn.Linear.forward = composable_lora.lora_Linear_forward
-torch.nn.Conv2d.forward = composable_lora.lora_Conv2d_forward
-
-script_callbacks.on_script_unloaded(unload)
-
-
 if not hasattr(prompt_parser, 'get_learned_conditioning_prompt_schedules_before_lora'):
     prompt_parser.get_learned_conditioning_prompt_schedules_before_lora = prompt_parser.get_learned_conditioning_prompt_schedules
+
+torch.nn.Linear.forward = composable_lora.lora_Linear_forward
+torch.nn.Conv2d.forward = composable_lora.lora_Conv2d_forward
 prompt_parser.get_learned_conditioning_prompt_schedules = composable_lora.lora_get_learned_conditioning_prompt_schedules
+
+script_callbacks.on_script_unloaded(unload)
 
 
 class ComposableLoraScript(scripts.Script):
