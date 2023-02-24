@@ -32,12 +32,13 @@ def reset_counters():
 
 
 def debug(*values: object, lora_layer_name: str):
-    if lora_layer_name.startswith("transformer_"):
-        if lora_layer_name.endswith("_11_mlp_fc2"):
-            print(*values)
-    elif lora_layer_name.startswith("diffusion_model_"):
-        if lora_layer_name.endswith("_11_1_proj_out"):
-            print(*values)
+    if verbose:
+        if lora_layer_name.startswith("transformer_"):
+            if lora_layer_name.endswith("_11_mlp_fc2"):
+                print(*values)
+        elif lora_layer_name.startswith("diffusion_model_"):
+            if lora_layer_name.endswith("_11_1_proj_out"):
+                print(*values)
 
 
 def lora_forward(compvis_module, input, res):
@@ -80,12 +81,12 @@ def lora_forward(compvis_module, input, res):
                     loras = prompt_loras[text_model_encoder_counter]
                     multiplier = loras.get(lora.name, 0.0)
                     if multiplier != 0.0:
-                        # debug(f"c #{text_model_encoder_counter} lora.name={lora.name} mul={multiplier}", lora_layer_name=lora_layer_name)
+                        debug(f"c #{text_model_encoder_counter} lora.name={lora.name} mul={multiplier}", lora_layer_name=lora_layer_name)
                         res += multiplier * alpha * patch
                 else:
                     # uc
                     if opt_uc_text_model_encoder and lora.multiplier != 0.0:
-                        # debug(f"uc #{text_model_encoder_counter} lora.name={lora.name} lora.mul={lora.multiplier}", lora_layer_name=lora_layer_name)
+                        debug(f"uc #{text_model_encoder_counter} lora.name={lora.name} lora.mul={lora.multiplier}", lora_layer_name=lora_layer_name)
                         res += lora.multiplier * alpha * patch
 
                 if get_learned_conditioning_prompt_schedules_counter != 1 and lora_layer_name.endswith("_11_mlp_fc2"):  # last lora_layer_name of text_model_encoder
@@ -103,13 +104,13 @@ def lora_forward(compvis_module, input, res):
                     for p, loras in enumerate(prompt_loras):
                         multiplier = loras.get(lora.name, 0.0)
                         if multiplier != 0.0:
-                            # debug(f"tensor #{b}.{p} lora.name={lora.name} mul={multiplier}", lora_layer_name=lora_layer_name)
+                            debug(f"tensor #{b}.{p} lora.name={lora.name} mul={multiplier}", lora_layer_name=lora_layer_name)
                             res[tensor_off] += multiplier * alpha * patch[tensor_off]
                         tensor_off += 1
 
                     # uc
                     if opt_uc_diffusion_model and lora.multiplier != 0.0:
-                        # debug(f"uncond lora.name={lora.name} lora.mul={lora.multiplier}", lora_layer_name=lora_layer_name)
+                        debug(f"uncond lora.name={lora.name} lora.mul={lora.multiplier}", lora_layer_name=lora_layer_name)
                         res[uncond_off] += lora.multiplier * alpha * patch[uncond_off]
                     uncond_off += 1
             else:  # "diffusion_model_"
@@ -119,12 +120,12 @@ def lora_forward(compvis_module, input, res):
                     loras = prompt_loras[diffusion_model_counter]
                     multiplier = loras.get(lora.name, 0.0)
                     if multiplier != 0.0:
-                        # debug(f"c #{diffusion_model_counter} lora.name={lora.name} mul={multiplier}", lora_layer_name=lora_layer_name)
+                        debug(f"c #{diffusion_model_counter} lora.name={lora.name} mul={multiplier}", lora_layer_name=lora_layer_name)
                         res += multiplier * alpha * patch
                 else:
                     # uc
                     if opt_uc_diffusion_model and lora.multiplier != 0.0:
-                        # debug(f"uc {lora_layer_name} lora.name={lora.name} lora.mul={lora.multiplier}", lora_layer_name=lora_layer_name)
+                        debug(f"uc {lora_layer_name} lora.name={lora.name} lora.mul={lora.multiplier}", lora_layer_name=lora_layer_name)
                         res += lora.multiplier * alpha * patch
 
                 if lora_layer_name.endswith("_11_1_proj_out"):  # last lora_layer_name of diffusion_model
@@ -135,7 +136,7 @@ def lora_forward(compvis_module, input, res):
         else:
             # default
             if lora.multiplier != 0.0:
-                # debug(f"DEFAULT {lora_layer_name} lora.name={lora.name} lora.mul={lora.multiplier}", lora_layer_name=lora_layer_name)
+                debug(f"DEFAULT {lora_layer_name} lora.name={lora.name} lora.mul={lora.multiplier}", lora_layer_name=lora_layer_name)
                 res += lora.multiplier * alpha * patch
 
     return res
@@ -154,7 +155,7 @@ def lora_get_learned_conditioning_prompt_schedules(prompts, steps):
     #
     # order: uc c
     #
-    # print(f"### get_learned_conditioning_prompt_schedules")
+
     prompt_schedules = prompt_parser.get_learned_conditioning_prompt_schedules_before_lora(prompts, steps)
 
     get_learned_conditioning_prompt_schedules_counter += 1
@@ -165,6 +166,7 @@ def lora_get_learned_conditioning_prompt_schedules(prompts, steps):
 enabled = False
 opt_uc_text_model_encoder = False
 opt_uc_diffusion_model = False
+verbose = False
 
 num_batches: int = 0
 prompt_loras: List[Dict[str, float]] = []
