@@ -10,6 +10,7 @@ re_AND = re.compile(r"\bAND\b")
 def load_prompt_loras(prompt: str):
     prompt_loras.clear()
     subprompts = re_AND.split(prompt)
+    tmp_prompt_loras = []
     for i, subprompt in enumerate(subprompts):
         loras = {}
         _, extra_network_data = extra_networks.parse_prompt(subprompt)
@@ -18,7 +19,8 @@ def load_prompt_loras(prompt: str):
             multiplier = float(params.items[1]) if len(params.items) > 1 else 1.0
             loras[name] = multiplier
 
-        prompt_loras.append(loras)
+        tmp_prompt_loras.append(loras)
+    prompt_loras.extend(tmp_prompt_loras * num_batches)
 
 
 def reset_counters():
@@ -84,7 +86,7 @@ def lora_forward(compvis_module, input, res):
                 if lora_layer_name.endswith("_11_mlp_fc2"):  # last lora_layer_name of text_model_encoder
                     text_model_encoder_counter += 1
                     # c1 c1 c2 c2 .. .. uc uc
-                    if text_model_encoder_counter == (len(prompt_loras) + 1) * num_loras:
+                    if text_model_encoder_counter == (len(prompt_loras) + num_batches) * num_loras:
                         text_model_encoder_counter = 0
 
             elif lora_layer_name.startswith("diffusion_model_"):  # "diffusion_model_"
@@ -128,7 +130,7 @@ def lora_forward(compvis_module, input, res):
                     if lora_layer_name.endswith("_11_1_proj_out"):  # last lora_layer_name of diffusion_model
                         diffusion_model_counter += cur_num_prompts
                         # c1 c2 .. uc
-                        if diffusion_model_counter >= (len(prompt_loras) + 1) * num_loras:
+                        if diffusion_model_counter >= (len(prompt_loras) + num_batches) * num_loras:
                             diffusion_model_counter = 0
             else:
                 # default
