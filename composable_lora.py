@@ -113,14 +113,16 @@ def lora_forward(compvis_module, input, res):
                     # tensor.shape[1] != uncond.shape[1]
                     cur_num_prompts = res.shape[0]
                     base = (diffusion_model_counter // cur_num_prompts) // num_loras * cur_num_prompts
-                    if 0 <= base < len(prompt_loras):
+                    prompt_len = len(prompt_loras)
+                    if 0 <= base < prompt_len:
                         # c
                         for off in range(cur_num_prompts):
-                            loras = prompt_loras[base + off]
-                            multiplier = loras.get(lora.name, 0.0)
-                            if multiplier != 0.0:
-                                # print(f"c #{base + off} lora.name={lora.name} mul={multiplier}", lora_layer_name=lora_layer_name)
-                                res[off] += multiplier * alpha * patch[off]
+                            if base + off < prompt_len:
+                                loras = prompt_loras[base + off]
+                                multiplier = loras.get(lora.name, 0.0)
+                                if multiplier != 0.0:
+                                    # print(f"c #{base + off} lora.name={lora.name} mul={multiplier}", lora_layer_name=lora_layer_name)
+                                    res[off] += multiplier * alpha * patch[off]
                     else:
                         # uc
                         if opt_uc_diffusion_model and lora.multiplier != 0.0:
