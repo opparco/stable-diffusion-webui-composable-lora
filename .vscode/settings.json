@@ -1,0 +1,4 @@
+{
+    "python.envFile": "${workspaceFolder}/.env",
+    "python.defaultInterpreterPath": "${workspaceFolder}/../../sd.webui/webui/venv/Scripts/"
+}
